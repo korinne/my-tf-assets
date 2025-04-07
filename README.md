@@ -30,10 +30,10 @@ Follow these steps to deploy your Worker with assets:
 2. Generate an asset token by running the upload script:
 
    ```bash
-   # Export required environment variables
-   export CF_API_TOKEN=your_api_token
-   export CF_ACCOUNT_ID=your_account_id
-   export WORKER_SCRIPT_NAME=my-tf-assets  # Optional
+   # Export required environment variables (these must match your TF_VAR variables)
+   export CF_API_TOKEN=$TF_VAR_cloudflare_api_token
+   export CF_ACCOUNT_ID=$TF_VAR_cloudflare_account_id
+   export WORKER_SCRIPT_NAME=$TF_VAR_worker_script_name  # Optional
 
    # Run the upload script
    bash ./scripts/upload_assets.sh
@@ -41,9 +41,13 @@ Follow these steps to deploy your Worker with assets:
 
 3. Apply Terraform configuration
 
-   # Apply configuration
+   ```bash
+   # Make sure TF_VAR environment variables are set
+   export TF_VAR_cloudflare_api_token="your_api_token_here"
+   export TF_VAR_cloudflare_account_id="your_account_id_here"
+   export TF_VAR_worker_script_name="my-tf-assets"  # Optional
 
-   ```
+   # Apply configuration
    terraform apply
    ```
 
@@ -61,3 +65,35 @@ Follow these steps to deploy your Worker with assets:
 
 - The order of operations is important:
   1. Build → 2. Upload → 3. Apply
+
+### Potential Terraform Provider Bug
+
+**Bug Description:** The Cloudflare Terraform provider (v5.2.0) automatically adds both `run_worker_first = false` and `serve_directly = true` to the assets configuration, even when neither is specified in your Terraform configuration. This causes a Cloudflare API error because these flags are mutually exclusive.
+
+**Error Message:**
+
+```
+"errors": [
+  {
+    "code": 10021,
+    "message": "serve_directly and run_worker_first must not be simultaneously specified"
+  }
+]
+```
+
+**How to Reproduce:**
+
+1. Use the `cloudflare_workers_script` resource with an assets block
+2. Define minimal assets configuration (without specifying either flag):
+   ```terraform
+   assets = {
+     config = {
+       not_found_handling = "single-page-application"
+     }
+     jwt = file("${path.module}/scripts/assets_token.txt")
+   }
+   ```
+3. Run `terraform apply`
+4. The provider will add both flags to the API request, resulting in an error
+
+**Affected Versions:** Cloudflare provider v5.2.0

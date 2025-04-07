@@ -54,6 +54,9 @@ resource "cloudflare_workers_script" "terraformed_assets" {
 
   # Use JWT approach for assets with binding
   assets = {
+    config = {
+      not_found_handling = "single-page-application"
+    }
     jwt = file("${path.module}/scripts/assets_token.txt")
   }
   
