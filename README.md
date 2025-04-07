@@ -43,10 +43,8 @@ Follow these steps to deploy your Worker with assets:
 
    # Apply configuration
 
-   terraform apply
-
    ```
-
+   terraform apply
    ```
 
 ### Important Notes About Asset Deployment
