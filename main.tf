@@ -10,8 +10,6 @@ terraform {
 }
 
 provider "cloudflare" {
-  # Use environment variable instead of hardcoded token
-  # export TF_VAR_cloudflare_api_token=your_token_here
   api_token = var.cloudflare_api_token
 }
 
@@ -36,7 +34,7 @@ resource "null_resource" "upload_assets" {
   provisioner "local-exec" {
     command = "bash ./scripts/upload_assets.sh"
     
-    # Pass the environment variables directly to the script
+    
     environment = {
       CF_API_TOKEN = var.cloudflare_api_token
       CF_ACCOUNT_ID = var.cloudflare_account_id
@@ -52,7 +50,7 @@ resource "cloudflare_workers_script" "terraformed_assets" {
   main_module = "index.ts"
   compatibility_date = "2025-04-01"
 
-  # Use JWT approach for assets with binding
+  
   assets = {
     config = {
       not_found_handling = "single-page-application"
@@ -60,7 +58,7 @@ resource "cloudflare_workers_script" "terraformed_assets" {
     jwt = file("${path.module}/scripts/assets_token.txt")
   }
   
-  # Add binding for assets
+ 
   bindings = [
     {
       name = "ASSETS"
@@ -68,6 +66,6 @@ resource "cloudflare_workers_script" "terraformed_assets" {
     }
   ]
   
-  # Add dependency on the upload_assets resource
+ 
   depends_on = [null_resource.upload_assets]
 }
