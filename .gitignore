@@ -7,6 +7,7 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies and build outputs
 node_modules
 dist
 dist-ssr
@@ -26,3 +27,15 @@ dist-ssr
 # wrangler files
 .wrangler
 .dev.vars*
+
+# Terraform state files
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Sensitive token files
+scripts/assets_token.txt
+scripts/manifest.json
+.env
+.env.local

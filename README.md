@@ -1,54 +1,65 @@
-# React + TypeScript + Vite
+# Terraforming assets
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The current path for uploading assets to Cloudflare Workers via Terraform.
 
-Currently, two official plugins are available:
+## Setup
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+1. Clone this repository
 
-## Expanding the ESLint configuration
+2. Set Terraform variables directly in your shell:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+   ```bash
+   # Set Terraform variables directly
+   export TF_VAR_cloudflare_api_token="your_api_token_here"
+   export TF_VAR_cloudflare_account_id="your_account_id_here"
+   export TF_VAR_worker_script_name="my-tf-assets"  # Optional, defaults to "my-tf-assets"
+   ```
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+   These variables will be automatically used by Terraform and passed to the upload script.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Deploying
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Follow these steps to deploy your Worker with assets:
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
+1. Build your assets:
+
+   ```bash
+   npm run build
+   ```
+
+2. Generate an asset token by running the upload script:
+
+   ```bash
+   # Export required environment variables
+   export CF_API_TOKEN=your_api_token
+   export CF_ACCOUNT_ID=your_account_id
+   export WORKER_SCRIPT_NAME=my-tf-assets  # Optional
+
+   # Run the upload script
+   bash ./scripts/upload_assets.sh
+   ```
+
+3. Apply Terraform configuration
+
+   # Apply configuration
+
+   terraform apply
+
+   ```
+
+   ```
+
+### Important Notes About Asset Deployment
+
+- The JWT token in `scripts/assets_token.txt` can only be used once. If you get a "token already consumed" error, you need to regenerate it by running the upload script again.
+
+- Always run the upload script before `terraform apply` to ensure a valid token exists.
+
+- If you make changes to your frontend assets, you must:
+
+  1. Rebuild the assets
+  2. Regenerate the token by running the upload script
+  3. Run terraform apply again
+
+- The order of operations is important:
+  1. Build → 2. Upload → 3. Apply
